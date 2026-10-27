@@ -28,9 +28,18 @@ class SVGExportService:
     ENDPOINT_SPREAD_STEP = 12.0  # pixels between parallel connection anchors
     EDGE_CORNER_MARGIN = 12.0  # keep endpoint spread away from corners
 
-    def __init__(self, show_stereotypes: bool = False) -> None:
-        """Initialize SVG export service."""
+    def __init__(self, show_stereotypes: bool = False, transparent_background: bool = False) -> None:
+        """Initialize SVG export service.
+
+        Args:
+            show_stereotypes: If True, render each element's profile name as a
+                     «stereotype» label above the element name.
+            transparent_background: If True, do not paint the white background
+                     rectangle, so that the canvas stays transparent (e.g. once
+                     converted to PNG).
+        """
         self.show_stereotypes = show_stereotypes
+        self.transparent_background = transparent_background
 
     def _sort_nodes_by_hierarchy(self, view: Any) -> list[Any]:
         """Sort nodes so that containing elements render before contained elements.
@@ -180,8 +189,9 @@ class SVGExportService:
         # Add defs block with arrowhead marker
         self._add_defs(svg)
 
-        # Add white background rectangle
-        self._add_background(svg, svg_width, svg_height)
+        # Add white background rectangle, unless a transparent canvas is requested
+        if not self.transparent_background:
+            self._add_background(svg, svg_width, svg_height)
 
         # Build complete nodes dictionary including nested nodes (for connection rendering)
         complete_nodes_dict = self._build_complete_nodes_dict(view)

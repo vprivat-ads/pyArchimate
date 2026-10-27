@@ -100,6 +100,7 @@ Views can be exported to SVG with automatic symbol rendering:
 
     svg_string = my_view.to_svg()
     my_view.to_svg(filepath="diagram.svg")
+    my_view.to_svg(transparent_background=True)  # no white background
 
 Features:
 

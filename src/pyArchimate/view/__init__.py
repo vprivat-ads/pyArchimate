@@ -1482,7 +1482,12 @@ class View:
             return self.add_connection(r, source, target)
         return None
 
-    def to_svg(self, filepath: str | None = None, show_stereotypes: bool = False) -> str:
+    def to_svg(
+        self,
+        filepath: str | None = None,
+        show_stereotypes: bool = False,
+        transparent_background: bool = False,
+    ) -> str:
         """Export view to SVG string and optionally write to file.
 
         Args:
@@ -1491,13 +1496,15 @@ class View:
                      is returned.
             show_stereotypes: If True, render each element's profile name as a
                      «stereotype» label above the element name.
+            transparent_background: If True, leave the canvas transparent
+                     instead of painting a white background.
 
         Returns:
             SVG string (valid XML with <svg> root element)
         """
         from .layout.export import SVGExportService
 
-        service = SVGExportService(show_stereotypes=show_stereotypes)
+        service = SVGExportService(show_stereotypes=show_stereotypes, transparent_background=transparent_background)
         return service.to_svg(self, filepath)
 
 
