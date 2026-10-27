@@ -374,6 +374,8 @@ def archimate_writer(model: Model, file_path: str | None = None) -> str:
     """
 
     root = et.fromstring(xml)
+    # Without the blank text of the template, pretty_print can indent the whole document
+    root.text = None
     nsp_url = "http://www.opengroup.org/xsd/archimate/3.0/"  # NOSONAR
     xsi_url = "http://www.w3.org/2001/XMLSchema-instance"  # NOSONAR
     xsi = et.QName(xsi_url, "type")

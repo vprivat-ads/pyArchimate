@@ -215,3 +215,13 @@ def test_archi_writer_propagates_target_connections_to_group_ancestors(tmp_path)
 
     assert conn.uuid not in (group_node.get("targetConnections") or "")
     assert conn.uuid in (tgt_node.get("targetConnections") or "")
+
+
+def test_archi_writer_indents_the_document(tmp_path):
+    """The document is indented, one element per line (pretty_print had no effect on the blank text of the
+    template, so the whole model was written on a single line)."""
+    out = tmp_path / "model.xml"
+    archi_writer(model_with_views(), str(out))
+    lines = out.read_text(encoding="utf-8").splitlines()
+    assert len(lines) > 10
+    assert any(line.startswith('  <folder name="') for line in lines)

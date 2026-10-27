@@ -113,3 +113,12 @@ def test_archimate_writer_exports_business_interaction():
     doc = bi_elem.find("ns:documentation", namespaces=ns)
     assert doc is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
     assert doc.text == "Service interactions"
+
+
+def test_archimate_writer_indents_the_document():
+    """The document is indented, one element per line (pretty_print had no effect on the blank text of the
+    template, so the whole model was written on a single line)."""
+    xml_content = archimate_writer(model_with_views())
+    lines = xml_content.splitlines()
+    assert len(lines) > 10
+    assert "  <elements>" in lines
