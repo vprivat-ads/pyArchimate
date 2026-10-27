@@ -113,3 +113,17 @@ def test_archimate_writer_exports_business_interaction():
     doc = bi_elem.find("ns:documentation", namespaces=ns)
     assert doc is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
     assert doc.text == "Service interactions"
+
+
+def test_node_line_color_written_with_its_three_components():
+    """The lineColor of a node keeps its green component (it was written with the red one)."""
+    model = Model("line-color")
+    elem = model.add(ArchiType.ApplicationComponent, "App")
+    view = model.add(ArchiType.View, "View")
+    node = view.add(elem, 10, 10)
+    node.line_color = "#112233"
+    root = etree.fromstring(archimate_writer(model).encode("utf-8"))
+    ns = {"ns": "http://www.opengroup.org/xsd/archimate/3.0/"}  # NOSONAR — XML namespace URI, not a network request
+    line_color = root.find(".//ns:node/ns:style/ns:lineColor", namespaces=ns)
+    assert line_color is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
+    assert (line_color.get("r"), line_color.get("g"), line_color.get("b")) == ("17", "34", "51")
