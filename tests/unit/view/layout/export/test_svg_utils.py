@@ -106,6 +106,19 @@ class TestWordWrapText:
         assert lines[0] == "Hello"
         assert lines[1] == "World"
 
+    def test_line_breaks_kept(self, svc):
+        lines = svc._word_wrap_text("Rules:\n- first rule\n- second rule", 1000)
+        assert lines == ["Rules:", "- first rule", "- second rule"]
+
+    def test_line_breaks_kept_and_long_lines_wrapped(self, svc):
+        # chars_per_line = int(60/6) = 10
+        lines = svc._word_wrap_text("Title\nHello World Again", 60)
+        assert lines[0] == "Title"
+        assert lines[1:] == svc._word_wrap_text("Hello World Again", 60)
+
+    def test_empty_line_kept(self, svc):
+        assert svc._word_wrap_text("First\n\nThird", 1000) == ["First", "", "Third"]
+
 
 # ── TestIsContainmentRelationship ─────────────────────────────────────────────
 
