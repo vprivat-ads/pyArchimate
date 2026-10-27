@@ -1087,8 +1087,9 @@ class SVGExportService:
         return source_node, target_node
 
     def _build_relationship_label(self, rel_type: str, conn: Any) -> str:
-        """Return label text, appending influence_strength for Influence relationships."""
-        label = self._get_short_type_name(rel_type)
+        """Return label text: the relationship name, or its short type name when it has no name, with the
+        influence_strength appended for Influence relationships."""
+        label = getattr(conn, "name", None) or self._get_short_type_name(rel_type)
         if rel_type in ("Influence", "InfluenceRelationship"):
             strength = getattr(conn, "influence_strength", None) or getattr(conn, "_influence_strength", None)
             if strength:
@@ -1194,7 +1195,7 @@ class SVGExportService:
 
         # Render connection label
         rel_type = getattr(conn, "type", "Relationship")
-        label_text = self._get_short_type_name(rel_type)
+        label_text = self._build_relationship_label(rel_type, conn)
 
         if label_text and len(points) >= 2:
             self._render_connection_label(svg, points, label_text)
