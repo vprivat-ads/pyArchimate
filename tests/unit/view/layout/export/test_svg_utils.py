@@ -606,6 +606,14 @@ class TestBuildRelationshipLabel:
         conn = SimpleNamespace(influence_strength=None, _influence_strength="++")
         assert svc._build_relationship_label("Influence", conn) == "Influence (++)"
 
+    def test_named_relationship_labelled_with_its_name(self, svc):
+        conn = SimpleNamespace(name="sessions & files (OData)")
+        assert svc._build_relationship_label("FlowRelationship", conn) == "sessions & files (OData)"
+
+    def test_named_influence_with_strength(self, svc):
+        conn = SimpleNamespace(name="drives", influence_strength="+", _influence_strength=None)
+        assert svc._build_relationship_label("InfluenceRelationship", conn) == "drives (+)"
+
 
 # ── TestDistributedSpread ─────────────────────────────────────────────────────
 
