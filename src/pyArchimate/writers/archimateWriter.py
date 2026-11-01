@@ -374,6 +374,8 @@ def archimate_writer(model: Model, file_path: str | None = None) -> str:
     """
 
     root = et.fromstring(xml)
+    # Without the blank text of the template, pretty_print can indent the whole document
+    root.text = None
     nsp_url = "http://www.opengroup.org/xsd/archimate/3.0/"  # NOSONAR
     xsi_url = "http://www.w3.org/2001/XMLSchema-instance"  # NOSONAR
     xsi = et.QName(xsi_url, "type")
@@ -393,13 +395,14 @@ def archimate_writer(model: Model, file_path: str | None = None) -> str:
     _write_relationships(root, model, xsi)
     _write_organizations(root, model, ns_find)
 
+    # The definitions are written before the views, as required by the schema, but filled after them, so that they
+    # also include the definitions of the view properties
     pd = et.SubElement(root, "propertyDefinitions")
+    _write_views(root, model, xsi)
     for k, v in model.pdefs.items():
         p = et.SubElement(pd, "propertyDefinition", identifier=k, type="string")
         p_name = et.SubElement(p, "name")
         p_name.text = str(v)
-
-    _write_views(root, model, xsi)
 
     pd_check = root.find("propertyDefinitions")
     if pd_check is not None and pd_check.find("propertyDefinition") is None:

@@ -127,3 +127,29 @@ def test_node_line_color_written_with_its_three_components():
     line_color = root.find(".//ns:node/ns:style/ns:lineColor", namespaces=ns)
     assert line_color is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
     assert (line_color.get("r"), line_color.get("g"), line_color.get("b")) == ("17", "34", "51")
+def test_archimate_writer_indents_the_document():
+    """The document is indented, one element per line (pretty_print had no effect on the blank text of the
+    template, so the whole model was written on a single line)."""
+    xml_content = archimate_writer(model_with_views())
+    lines = xml_content.splitlines()
+    assert len(lines) > 10
+    assert "  <elements>" in lines
+def test_view_properties_have_their_property_definitions():
+    """The properties of the views refer to written property definitions (they were missing, which made the file
+    invalid against the OpenGroup schema)."""
+    model = Model("view-props")
+    elem = model.add(ArchiType.ApplicationComponent, "App")
+    elem.prop("owner", "team")
+    view = model.add(ArchiType.View, "View")
+    view.prop("viewpoint", "Layered")
+    root = etree.fromstring(archimate_writer(model).encode("utf-8"))
+    ns = {"ns": "http://www.opengroup.org/xsd/archimate/3.0/"}  # NOSONAR — XML namespace URI, not a network request
+    definitions = {
+        d.get("identifier"): d.findtext("ns:name", namespaces=ns)
+        for d in root.findall("ns:propertyDefinitions/ns:propertyDefinition", namespaces=ns)
+    }
+    view_prop = root.find(".//ns:view/ns:properties/ns:property", namespaces=ns)
+    assert view_prop is not None  # NOSONAR — lxml stubs omit Optional; find() returns None at runtime
+    assert definitions[view_prop.get("propertyDefinitionRef")] == "viewpoint"
+    tags = [etree.QName(child).localname for child in root]
+    assert tags.index("propertyDefinitions") < tags.index("views")

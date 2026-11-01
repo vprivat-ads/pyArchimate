@@ -181,7 +181,7 @@ class SVGExportService:
         self._add_defs(svg)
 
         # Add white background rectangle
-        self._add_background(svg, svg_width, svg_height)
+        self._add_background(svg, svg_width, svg_height, svg_min_x, svg_min_y)
 
         # Build complete nodes dictionary including nested nodes (for connection rendering)
         complete_nodes_dict = self._build_complete_nodes_dict(view)
@@ -428,20 +428,24 @@ class SVGExportService:
             },
         )
 
-    def _add_background(self, svg: ET.Element, width: float, height: float) -> None:
+    def _add_background(
+        self, svg: ET.Element, width: float, height: float, min_x: float = 0.0, min_y: float = 0.0
+    ) -> None:
         """Add white background rectangle to SVG canvas.
 
         Args:
             svg: SVG root element
             width: SVG canvas width
             height: SVG canvas height
+            min_x: left of the SVG canvas (view box), which may be negative
+            min_y: top of the SVG canvas (view box), which may be negative
         """
         ET.SubElement(
             svg,
             "rect",
             {
-                "x": "0",
-                "y": "0",
+                "x": str(int(min_x)),
+                "y": str(int(min_y)),
                 "width": str(int(width)),
                 "height": str(int(height)),
                 "fill": "white",
@@ -860,7 +864,7 @@ class SVGExportService:
                 tspan.text = line
 
     def _word_wrap_text(self, text: str, max_width: float) -> list[str]:
-        """Word wrap text to fit within max_width.
+        """Word wrap text to fit within max_width, keeping its line breaks.
 
         Args:
             text: Text to wrap
@@ -869,6 +873,9 @@ class SVGExportService:
         Returns:
             List of text lines
         """
+        if "\n" in text:
+            return [line for paragraph in text.splitlines() for line in self._word_wrap_text(paragraph, max_width)]
+
         # Estimate characters per line (rough: ~6 pixels per character)
         chars_per_line = max(1, int(max_width / 6))
 
@@ -1087,8 +1094,9 @@ class SVGExportService:
         return source_node, target_node
 
     def _build_relationship_label(self, rel_type: str, conn: Any) -> str:
-        """Return label text, appending influence_strength for Influence relationships."""
-        label = self._get_short_type_name(rel_type)
+        """Return label text: the relationship name, or its short type name when it has no name, with the
+        influence_strength appended for Influence relationships."""
+        label = getattr(conn, "name", None) or self._get_short_type_name(rel_type)
         if rel_type in ("Influence", "InfluenceRelationship"):
             strength = getattr(conn, "influence_strength", None) or getattr(conn, "_influence_strength", None)
             if strength:
@@ -1194,7 +1202,7 @@ class SVGExportService:
 
         # Render connection label
         rel_type = getattr(conn, "type", "Relationship")
-        label_text = self._get_short_type_name(rel_type)
+        label_text = self._build_relationship_label(rel_type, conn)
 
         if label_text and len(points) >= 2:
             self._render_connection_label(svg, points, label_text)
