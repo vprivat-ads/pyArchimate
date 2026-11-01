@@ -510,3 +510,19 @@ class TestGetShortTypeName:
     def test_no_relationship_suffix(self, svc):
         result = svc._get_short_type_name("Serving")
         assert result == "Serving"
+
+
+def test_background_covers_the_whole_view_box():
+    """The white background starts at the origin of the view box, which is negative because of its margin (it
+    started at 0, which left a transparent band at the top and on the left of the canvas)."""
+    model = Model("background")
+    elem = model.add(ArchiType.BusinessActor, "Actor")
+    view = cast(View, model.add(ArchiType.View, "View"))
+    view.add(elem, 0, 0, 200, 100)
+    svg = ET.fromstring(SVGExportService().to_svg(view))
+    min_x, min_y, width, height = (float(v) for v in svg.get("viewBox", "").split())
+    background = svg.find("{http://www.w3.org/2000/svg}rect")  # NOSONAR — XML namespace URI, not a network request
+    assert background is not None
+    assert min_x < 0 and min_y < 0
+    assert (float(background.get("x", "")), float(background.get("y", ""))) == (min_x, min_y)
+    assert (float(background.get("width", "")), float(background.get("height", ""))) == (width, height)

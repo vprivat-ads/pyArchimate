@@ -181,7 +181,7 @@ class SVGExportService:
         self._add_defs(svg)
 
         # Add white background rectangle
-        self._add_background(svg, svg_width, svg_height)
+        self._add_background(svg, svg_width, svg_height, svg_min_x, svg_min_y)
 
         # Build complete nodes dictionary including nested nodes (for connection rendering)
         complete_nodes_dict = self._build_complete_nodes_dict(view)
@@ -428,20 +428,24 @@ class SVGExportService:
             },
         )
 
-    def _add_background(self, svg: ET.Element, width: float, height: float) -> None:
+    def _add_background(
+        self, svg: ET.Element, width: float, height: float, min_x: float = 0.0, min_y: float = 0.0
+    ) -> None:
         """Add white background rectangle to SVG canvas.
 
         Args:
             svg: SVG root element
             width: SVG canvas width
             height: SVG canvas height
+            min_x: left of the SVG canvas (view box), which may be negative
+            min_y: top of the SVG canvas (view box), which may be negative
         """
         ET.SubElement(
             svg,
             "rect",
             {
-                "x": "0",
-                "y": "0",
+                "x": str(int(min_x)),
+                "y": str(int(min_y)),
                 "width": str(int(width)),
                 "height": str(int(height)),
                 "fill": "white",
