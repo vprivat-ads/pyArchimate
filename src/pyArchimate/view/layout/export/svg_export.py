@@ -860,7 +860,7 @@ class SVGExportService:
                 tspan.text = line
 
     def _word_wrap_text(self, text: str, max_width: float) -> list[str]:
-        """Word wrap text to fit within max_width.
+        """Word wrap text to fit within max_width, keeping its line breaks.
 
         Args:
             text: Text to wrap
@@ -869,6 +869,9 @@ class SVGExportService:
         Returns:
             List of text lines
         """
+        if "\n" in text:
+            return [line for paragraph in text.splitlines() for line in self._word_wrap_text(paragraph, max_width)]
+
         # Estimate characters per line (rough: ~6 pixels per character)
         chars_per_line = max(1, int(max_width / 6))
 
