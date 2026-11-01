@@ -406,6 +406,8 @@ def archi_writer(model: Model, file_path: str) -> str:
     """
 
     root = et.fromstring(xml)
+    # Without the blank text of the template, pretty_print can indent the whole document
+    root.text = None
     xsi_url = "http://www.w3.org/2001/XMLSchema-instance"  # NOSONAR
     xsi = et.QName(xsi_url, "type")
     folders = _create_folders(root)

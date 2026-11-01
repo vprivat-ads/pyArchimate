@@ -115,6 +115,13 @@ def test_archimate_writer_exports_business_interaction():
     assert doc.text == "Service interactions"
 
 
+def test_archimate_writer_indents_the_document():
+    """The document is indented, one element per line (pretty_print had no effect on the blank text of the
+    template, so the whole model was written on a single line)."""
+    xml_content = archimate_writer(model_with_views())
+    lines = xml_content.splitlines()
+    assert len(lines) > 10
+    assert "  <elements>" in lines
 def test_view_properties_have_their_property_definitions():
     """The properties of the views refer to written property definitions (they were missing, which made the file
     invalid against the OpenGroup schema)."""
